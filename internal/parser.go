@@ -8,7 +8,7 @@ type Dependency struct {
 	//locale | remote
 	Type    string
 	Path    string
-	Version VersionInfo
+	Version *VersionInfo
 }
 
 type VersionInfo struct {

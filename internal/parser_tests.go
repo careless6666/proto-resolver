@@ -9,8 +9,9 @@ deps:
   - git: github.com/googleapis/googleapis/google/api/annotations.proto v0.0.0-20211005231101-409e134ffaac
   - remote_file: https://github.com/googleapis/googleapis/blob/master/google/api/annotations.proto
   - local_file: /tmp/path
- */
+*/
 
+/*
 variations of format
 
 deps:
