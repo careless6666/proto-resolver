@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"ProtoDepsResolver/internal/models"
 	"ProtoDepsResolver/internal/parser/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -55,6 +56,86 @@ deps:
 			}
 		})
 	}
+}
+
+func TestGetDepsVersion(t *testing.T) {
+	gc := gomock.NewController(t)
+	fileReader := mock.NewMockIFileReader(gc)
+
+	t.Run("TestGetDepsVersionTagOnly", func(t *testing.T) {
+		fileMock := []byte(
+			`version: v1
+deps:
+  - git: github.com/googleapis/googleapis/google/api/http.proto v1.0.0`)
+		fileReader.EXPECT().ReadFile(gomock.Any()).Return(fileMock, nil)
+
+		parser := NewFileParser(fileReader)
+
+		deps, err := parser.GetDeps("test")
+		require.NoError(t, err)
+		require.Len(t, deps, 1)
+		require.Equal(t, "v1.0.0", deps[0].Version.Tag)
+		require.Equal(t, "github.com/googleapis/googleapis/google/api/http.proto", deps[0].Path)
+		require.Equal(t, "", deps[0].DestinationPath)
+		require.Equal(t, models.DependencyTypeGit, deps[0].Type)
+	})
+
+	t.Run("TestGetDepsVersionTagWithRevision", func(t *testing.T) {
+		fileMock := []byte(
+			`version: v1
+deps:
+  - git: github.com/googleapis/googleapis/google/api/http.proto v1.0.0-20211005231101-409e134ffaac`)
+		fileReader.EXPECT().ReadFile(gomock.Any()).Return(fileMock, nil)
+
+		parser := NewFileParser(fileReader)
+
+		deps, err := parser.GetDeps("test")
+		require.NoError(t, err)
+		require.Len(t, deps, 1)
+		require.Equal(t, "v1.0.0", deps[0].Version.Tag)
+		require.Equal(t, "github.com/googleapis/googleapis/google/api/http.proto", deps[0].Path)
+		require.Equal(t, "", deps[0].DestinationPath)
+		require.Equal(t, models.DependencyTypeGit, deps[0].Type)
+		require.Equal(t, "409e134ffaac", deps[0].Version.CommitRevision)
+	})
+
+	t.Run("TestGetDepsUrl", func(t *testing.T) {
+		fileMock := []byte(
+			`version: v1
+deps:
+  - url: https://github.com/googleapis/googleapis/blob/master/google/api/annotations.proto ./github.com/googleapis/googleapis/blob/master/google/api v1`)
+		fileReader.EXPECT().ReadFile(gomock.Any()).Return(fileMock, nil)
+
+		parser := NewFileParser(fileReader)
+
+		deps, err := parser.GetDeps("test")
+		require.NoError(t, err)
+		require.Len(t, deps, 1)
+		require.Equal(t, "v1", deps[0].Version.Tag)
+		require.Equal(t, "https://github.com/googleapis/googleapis/blob/master/google/api/annotations.proto", deps[0].Path)
+		require.Equal(t, "./github.com/googleapis/googleapis/blob/master/google/api", deps[0].DestinationPath)
+		require.Equal(t, models.DependencyTypeURL, deps[0].Type)
+		require.Equal(t, "", deps[0].Version.CommitRevision)
+	})
+
+	t.Run("TestGetDepsPath", func(t *testing.T) {
+		fileMock := []byte(
+			`version: v1
+deps:
+  - path: /tmp/path ./github.com/googleapis v1`)
+		fileReader.EXPECT().ReadFile(gomock.Any()).Return(fileMock, nil)
+
+		parser := NewFileParser(fileReader)
+
+		deps, err := parser.GetDeps("test")
+		require.NoError(t, err)
+		require.Len(t, deps, 1)
+		require.Equal(t, "v1", deps[0].Version.Tag)
+		require.Equal(t, "/tmp/path", deps[0].Path)
+		require.Equal(t, "./github.com/googleapis", deps[0].DestinationPath)
+		require.Equal(t, models.DependencyTypePath, deps[0].Type)
+		require.Equal(t, "", deps[0].Version.CommitRevision)
+	})
 }
 
 //mock data

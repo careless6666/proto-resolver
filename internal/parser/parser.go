@@ -3,6 +3,7 @@
 package parser
 
 import (
+	"ProtoDepsResolver/internal/models"
 	"errors"
 	"fmt"
 	"regexp"
@@ -17,26 +18,6 @@ type IFileReader interface {
 	ReadFile(filePath string) ([]byte, error)
 }
 
-const (
-	DependencyTypeGit  = iota
-	DependencyTypeURL  = iota
-	DependencyTypePath = iota
-)
-
-type Dependency struct {
-	//locale | remote
-	Type int
-	Path string
-	// for url | path
-	DestinationPath string
-	Version         *VersionInfo
-}
-
-type VersionInfo struct {
-	Tag    string
-	Commit string
-}
-
 type DepsFileParser struct {
 	fileReader IFileReader
 }
@@ -47,7 +28,7 @@ func NewFileParser(fileReader IFileReader) *DepsFileParser {
 	}
 }
 
-func (f *DepsFileParser) GetDeps(path string) ([]Dependency, error) {
+func (f *DepsFileParser) GetDeps(path string) ([]models.Dependency, error) {
 	content, err := f.fileReader.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -76,7 +57,7 @@ func (f *DepsFileParser) GetDeps(path string) ([]Dependency, error) {
 		return nil, errors.New("invalid dependencies file, \"deps:\" block not found")
 	}
 
-	result := make([]Dependency, 0)
+	result := make([]models.Dependency, 0)
 	//get deps
 	for _, depStr := range depsStr[2:] {
 		dep, err := ParseDepsLine(depStr)
@@ -92,7 +73,7 @@ func (f *DepsFileParser) GetDeps(path string) ([]Dependency, error) {
 	return result, nil
 }
 
-func ParseDepsLine(dependency string) (*Dependency, error) {
+func ParseDepsLine(dependency string) (*models.Dependency, error) {
 	dependency = strings.TrimSpace(dependency)
 
 	if dependency == "" {
@@ -105,7 +86,7 @@ func ParseDepsLine(dependency string) (*Dependency, error) {
 	}
 
 	if matchedGit {
-		return getGitDeps(dependency[6:])
+		return getGitDeps(dependency[7:])
 	}
 
 	matchedURL, err := regexp.Match(`- url: `, []byte(dependency))
@@ -114,7 +95,7 @@ func ParseDepsLine(dependency string) (*Dependency, error) {
 	}
 
 	if matchedURL {
-		return getUrlDeps(dependency[6:])
+		return getUrlDeps(dependency[7:])
 	}
 
 	matchedFile, err := regexp.Match(`- path: `, []byte(dependency))
@@ -123,22 +104,42 @@ func ParseDepsLine(dependency string) (*Dependency, error) {
 	}
 
 	if matchedFile {
-		return getFileDeps(dependency[7:])
+		return getFileDeps(dependency[8:])
 	}
 
 	return nil, nil
 }
 
-func getGitDeps(dependency string) (*Dependency, error) {
+func getGitDeps(dependency string) (*models.Dependency, error) {
 	depPaths := strings.Split(dependency, " ")
 	if len(depPaths) != 2 {
 		return nil, errors.New("invalid dependency, have to by pattern \"- git: github.com/repo/file.proto v0.0.0-20211005231101-409e134ffaac\"")
 	}
 
-	return nil, nil
+	version := &models.VersionInfo{
+		Tag:            "",
+		CommitRevision: "",
+	}
+
+	versionStr := strings.Split(depPaths[1], "-")
+	if len(versionStr) == 1 {
+		version.Tag = versionStr[0]
+	} else if len(versionStr) == 3 {
+		version.Tag = versionStr[0]
+		version.CommitRevision = versionStr[2]
+	} else {
+		return nil, errors.New("invalid count items in git deps version info")
+	}
+
+	return &models.Dependency{
+		Type:            models.DependencyTypeGit,
+		Path:            depPaths[0],
+		DestinationPath: "",
+		Version:         version,
+	}, nil
 }
 
-func getUrlDeps(dependency string) (*Dependency, error) {
+func getUrlDeps(dependency string) (*models.Dependency, error) {
 	depPaths := strings.Split(dependency, " ")
 	if len(depPaths) != 3 {
 		return nil, errors.New("invalid dependency, have to by pattern \"- url: https://github.com/repo/file.proto ./github.com/repo/file.proto v1\"")
@@ -150,13 +151,13 @@ func getUrlDeps(dependency string) (*Dependency, error) {
 	}
 
 	if matchedProtoFileURL {
-		return &Dependency{
-			Type:            DependencyTypeURL,
+		return &models.Dependency{
+			Type:            models.DependencyTypeURL,
 			Path:            depPaths[0],
 			DestinationPath: depPaths[1],
-			Version: &VersionInfo{
-				Tag:    depPaths[2],
-				Commit: "",
+			Version: &models.VersionInfo{
+				Tag:            depPaths[2],
+				CommitRevision: "",
 			},
 		}, nil
 	}
@@ -164,17 +165,17 @@ func getUrlDeps(dependency string) (*Dependency, error) {
 	return nil, errors.New("invalid dependency, expected URL to proto file")
 }
 
-func getFileDeps(dependency string) (*Dependency, error) {
+func getFileDeps(dependency string) (*models.Dependency, error) {
 	depPaths := strings.Split(dependency, " ")
 	if len(depPaths) != 3 {
 		return nil, errors.New("invalid dependency, have to by pattern \"- path: /var/github.com/repo/file.proto ./github.com/repo/file.proto v1\"")
 	}
 
-	return &Dependency{
-		Type:            DependencyTypePath,
+	return &models.Dependency{
+		Type:            models.DependencyTypePath,
 		Path:            depPaths[0],
 		DestinationPath: depPaths[1],
-		Version: &VersionInfo{
+		Version: &models.VersionInfo{
 			Tag: depPaths[2],
 		},
 	}, nil
