@@ -25,9 +25,11 @@ const (
 
 type Dependency struct {
 	//locale | remote
-	Type    int
-	Path    string
-	Version *VersionInfo
+	Type int
+	Path string
+	// for url | path
+	DestinationPath string
+	Version         *VersionInfo
 }
 
 type VersionInfo struct {
@@ -128,20 +130,34 @@ func ParseDepsLine(dependency string) (*Dependency, error) {
 }
 
 func getGitDeps(dependency string) (*Dependency, error) {
+	depPaths := strings.Split(dependency, " ")
+	if len(depPaths) != 2 {
+		return nil, errors.New("invalid dependency, have to by pattern \"- git: github.com/repo/file.proto v0.0.0-20211005231101-409e134ffaac\"")
+	}
+
 	return nil, nil
 }
 
 func getUrlDeps(dependency string) (*Dependency, error) {
-	matchedProtoFileURL, err := regexp.Match(`(http:\/\/)(.*)(.)(proto)|(https:\/\/)(.*)(.)(proto)`, []byte(dependency))
+	depPaths := strings.Split(dependency, " ")
+	if len(depPaths) != 3 {
+		return nil, errors.New("invalid dependency, have to by pattern \"- url: https://github.com/repo/file.proto ./github.com/repo/file.proto v1\"")
+	}
+
+	matchedProtoFileURL, err := regexp.Match(`(http:\/\/)(.*)(.)(proto)|(https:\/\/)(.*)(.)(proto)`, []byte(depPaths[0]))
 	if err != nil {
 		return nil, err
 	}
 
 	if matchedProtoFileURL {
 		return &Dependency{
-			Type:    DependencyTypeURL,
-			Path:    dependency,
-			Version: nil,
+			Type:            DependencyTypeURL,
+			Path:            depPaths[0],
+			DestinationPath: depPaths[1],
+			Version: &VersionInfo{
+				Tag:    depPaths[2],
+				Commit: "",
+			},
 		}, nil
 	}
 
@@ -149,9 +165,17 @@ func getUrlDeps(dependency string) (*Dependency, error) {
 }
 
 func getFileDeps(dependency string) (*Dependency, error) {
+	depPaths := strings.Split(dependency, " ")
+	if len(depPaths) != 3 {
+		return nil, errors.New("invalid dependency, have to by pattern \"- path: /var/github.com/repo/file.proto ./github.com/repo/file.proto v1\"")
+	}
+
 	return &Dependency{
-		Type:    DependencyTypePath,
-		Path:    dependency,
-		Version: nil,
+		Type:            DependencyTypePath,
+		Path:            depPaths[0],
+		DestinationPath: depPaths[1],
+		Version: &VersionInfo{
+			Tag: depPaths[2],
+		},
 	}, nil
 }
