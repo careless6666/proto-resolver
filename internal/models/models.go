@@ -14,7 +14,9 @@ type Dependency struct {
 	Path string
 	// for url | path
 	DestinationPath string
-	Version         *VersionInfo
+	// path inside git repo
+	GitPath string
+	Version *VersionInfo
 }
 
 type VersionInfo struct {

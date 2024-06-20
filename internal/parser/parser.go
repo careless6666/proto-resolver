@@ -135,7 +135,7 @@ func ParseDepsLine(dependency string) (*models.Dependency, error) {
 
 func getGitDeps(dependency string) (*models.Dependency, error) {
 	depPaths := strings.Split(dependency, " ")
-	if len(depPaths) != 2 {
+	if len(depPaths) != 3 {
 		return nil, errors.New("invalid dependency, have to by pattern \"- git: github.com/repo/file.proto v0.0.0-20211005231101-409e134ffaac\"")
 	}
 
@@ -144,7 +144,7 @@ func getGitDeps(dependency string) (*models.Dependency, error) {
 		CommitRevision: "",
 	}
 
-	versionStr := strings.Split(depPaths[1], "-")
+	versionStr := strings.Split(depPaths[2], "-")
 	if len(versionStr) == 1 {
 		version.Tag = versionStr[0]
 	} else if len(versionStr) == 3 {
@@ -157,6 +157,7 @@ func getGitDeps(dependency string) (*models.Dependency, error) {
 	return &models.Dependency{
 		Type:            models.DependencyTypeGit,
 		Path:            depPaths[0],
+		GitPath:         depPaths[1],
 		DestinationPath: "",
 		Version:         version,
 	}, nil

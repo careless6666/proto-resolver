@@ -66,7 +66,7 @@ func TestGetDepsVersion(t *testing.T) {
 		fileMock := []byte(
 			`version: v1
 deps:
-  - git: github.com/googleapis/googleapis/google/api/http.proto v1.0.0`)
+  - git: https://github.com/googleapis/googleapis.git /google/api/http.proto v1.0.0`)
 		fileReader.EXPECT().ReadFile(gomock.Any()).Return(fileMock, nil)
 
 		parser := NewFileParser(fileReader)
@@ -75,7 +75,8 @@ deps:
 		require.NoError(t, err)
 		require.Len(t, deps, 1)
 		require.Equal(t, "v1.0.0", deps[0].Version.Tag)
-		require.Equal(t, "github.com/googleapis/googleapis/google/api/http.proto", deps[0].Path)
+		require.Equal(t, "https://github.com/googleapis/googleapis.git", deps[0].Path)
+		require.Equal(t, "/google/api/http.proto", deps[0].GitPath)
 		require.Equal(t, "", deps[0].DestinationPath)
 		require.Equal(t, models.DependencyTypeGit, deps[0].Type)
 	})
@@ -84,7 +85,7 @@ deps:
 		fileMock := []byte(
 			`version: v1
 deps:
-  - git: github.com/googleapis/googleapis/google/api/http.proto v1.0.0-20211005231101-409e134ffaac`)
+  - git: https://github.com/googleapis/googleapis.git /google/api/http.proto v1.0.0-20211005231101-409e134ffaac`)
 		fileReader.EXPECT().ReadFile(gomock.Any()).Return(fileMock, nil)
 
 		parser := NewFileParser(fileReader)
@@ -93,7 +94,8 @@ deps:
 		require.NoError(t, err)
 		require.Len(t, deps, 1)
 		require.Equal(t, "v1.0.0", deps[0].Version.Tag)
-		require.Equal(t, "github.com/googleapis/googleapis/google/api/http.proto", deps[0].Path)
+		require.Equal(t, "https://github.com/googleapis/googleapis.git", deps[0].Path)
+		require.Equal(t, "/google/api/http.proto", deps[0].GitPath)
 		require.Equal(t, "", deps[0].DestinationPath)
 		require.Equal(t, models.DependencyTypeGit, deps[0].Type)
 		require.Equal(t, "409e134ffaac", deps[0].Version.CommitRevision)

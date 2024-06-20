@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -66,6 +67,10 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 			}
 		case models.DependencyTypeGit:
 			{
+				err = DownloadGitRepo(dep)
+				if err != nil {
+					return err
+				}
 				break
 			}
 
@@ -75,7 +80,54 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 	}
 
 	return nil
+}
 
+func GetSshPathFromHttp(URL string) (string, error) {
+
+	pathArr := strings.Split(URL, "/")
+
+	if len(pathArr) < 3 {
+		return "", errors.New("Invalid github repo path: " + URL)
+	}
+
+	sshPath := "git@" + URL + "/" + strings.Join(pathArr[1:], "/")
+
+	return sshPath, nil
+}
+
+func DownloadGitRepo(dep models.Dependency) error {
+	gitInstalled := exec.Command("git", "--version")
+
+	protoStorePath, err := GetProtoStorePath()
+
+	if err != nil {
+		return err
+	}
+
+	err = gitInstalled.Run()
+	if err != nil {
+		return errors.New("Git not installed")
+	}
+
+	if dep.Version.CommitRevision != "" {
+
+		//git@gitlab.ae-rus.net:common/platform.git
+		//https://gitlab.ae-rus.net/common/platform.git
+		address, err := GetSshPathFromHttp(dep.Path)
+		if err != nil {
+			return err
+		}
+
+		protoStorePath = path.Join(dep.Version.Tag, dep.Version.CommitRevision, protoStorePath)
+
+		cloneCmd := exec.Command("git", "clone", address, protoStorePath, "--depth 1")
+
+		fmt.Println(cloneCmd)
+
+		return nil
+	}
+
+	return nil
 }
 
 func DownloadFile(dep models.Dependency) error {
