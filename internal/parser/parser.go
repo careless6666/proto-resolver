@@ -5,7 +5,7 @@ package parser
 import (
 	"ProtoDepsResolver/internal/models"
 	"errors"
-	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -16,6 +16,17 @@ import (
 
 type IFileReader interface {
 	ReadFile(filePath string) ([]byte, error)
+}
+
+type FileReader struct {
+}
+
+func (f *FileReader) ReadFile(filePath string) ([]byte, error) {
+	return os.ReadFile(filePath)
+}
+
+func NewFileReader() *FileReader {
+	return &FileReader{}
 }
 
 type DepsFileParser struct {
@@ -62,13 +73,19 @@ func (f *DepsFileParser) GetDeps(path string) ([]models.Dependency, error) {
 	for _, depStr := range depsStr[2:] {
 		dep, err := ParseDepsLine(depStr)
 		if err != nil {
+
 			return nil, err
+		}
+		if dep == nil {
+			continue
 		}
 
 		result = append(result, *dep)
 	}
 
-	fmt.Println(content)
+	if len(result) == 0 {
+		return nil, errors.New("no dependencies found")
+	}
 
 	return result, nil
 }
@@ -76,8 +93,9 @@ func (f *DepsFileParser) GetDeps(path string) ([]models.Dependency, error) {
 func ParseDepsLine(dependency string) (*models.Dependency, error) {
 	dependency = strings.TrimSpace(dependency)
 
+	// skip empty lines
 	if dependency == "" {
-		return nil, errors.New("empty dependency")
+		return nil, nil
 	}
 
 	matchedGit, err := regexp.Match(`- git: `, []byte(dependency))

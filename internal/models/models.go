@@ -6,7 +6,7 @@ const (
 	DependencyTypePath = iota
 )
 
-const RootPath string = "~/.proto-deps"
+const RootPath string = ".proto_deps"
 
 type Dependency struct {
 	//locale | remote

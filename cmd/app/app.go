@@ -1,8 +1,11 @@
 package app
 
 import (
+	"ProtoDepsResolver/internal/downloader"
+	"ProtoDepsResolver/internal/parser"
 	"fmt"
 	"github.com/urfave/cli/v2"
+	"os"
 )
 
 func New(gitlabToken, githubToken string) (*App, error) {
@@ -76,18 +79,28 @@ type App struct {
 
 func Restore(ctx *cli.Context) error {
 	fmt.Println("restored")
-	/*a, err := New(ctx.String("gitlab_token"), ctx.String("github_token"))
-	if err != nil {
-		log.Fatal(err)
-	}*/
-	//dependencies, err := a.protodepProvider.FileDependencies()
-	//if err != nil {
-	//	log.Fatal(err)
-	//	}
-	//if len(dependencies) == 0 {
-	//	return errors.New("empty dependencies")
-	//}
 
-	// return a.dependencyManager.Process(ctx.Context, dependencies...)
+	var fileReader parser.IFileReader = parser.NewFileReader()
+	depsParser := parser.NewFileParser(fileReader)
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	deps, err := depsParser.GetDeps(pwd + "/proto_deps.yml")
+
+	if err != nil {
+		return err
+	}
+
+	depsDownloader := downloader.NewDownloader()
+	err = depsDownloader.Download(deps)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
