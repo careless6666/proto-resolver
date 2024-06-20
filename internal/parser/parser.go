@@ -98,6 +98,11 @@ func ParseDepsLine(dependency string) (*models.Dependency, error) {
 		return nil, nil
 	}
 
+	// skip commented line
+	if strings.HasPrefix(dependency, "#") {
+		return nil, nil
+	}
+
 	matchedGit, err := regexp.Match(`- git: `, []byte(dependency))
 	if err != nil {
 		return nil, err

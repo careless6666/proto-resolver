@@ -4,7 +4,9 @@ import (
 	"ProtoDepsResolver/internal/models"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -56,6 +58,10 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 			}
 		case models.DependencyTypeURL:
 			{
+				err = DownloadFile(dep)
+				if err != nil {
+					return err
+				}
 				break
 			}
 		case models.DependencyTypeGit:
@@ -72,11 +78,45 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 
 }
 
+func DownloadFile(dep models.Dependency) error {
+	protoStorePath, err := GetProtoStorePath()
+	urlArr := strings.Split(dep.Path, "/")
+	dstFileName := urlArr[len(urlArr)-1]
+	dstFilePath := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
+
+	destinationFile := path.Join(dstFilePath, dstFileName)
+
+	if _, err = os.Stat(destinationFile); errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(dstFilePath, os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		out, err := os.Create(destinationFile)
+		defer out.Close()
+		if err != nil {
+			return err
+		}
+		resp, err := http.Get(dep.Path)
+		defer resp.Body.Close()
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(out, resp.Body)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
 func copyFileOrFolder(dep models.Dependency) error {
 	//file or directory
+	protoStorePath, err := GetProtoStorePath()
 	if strings.HasSuffix(dep.Path, ".proto") {
 		file := filepath.Base(dep.Path)
-		protoStorePath, err := GetProtoStorePath()
+
 		if err != nil {
 			return err
 		}
@@ -93,26 +133,74 @@ func copyFileOrFolder(dep models.Dependency) error {
 			return err
 		}
 
-	} else if strings.HasSuffix(dep.Path, "*") {
-
-	} else {
-
+	} else if strings.HasSuffix(dep.Path, "*") { //expected directory with one or many proto files
+		dep.Path = dep.Path[:(len(dep.Path) - 1)]
+		err := CopyFilesRecursively(dep)
+		if err != nil {
+			return err
+		}
+	} else { //expected directory with one or many proto files
+		err := CopyFilesRecursively(dep)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func Copy(sourceFile, destinationFile string) (err error) {
-	input, err := ioutil.ReadFile(sourceFile)
+func CopyFilesRecursively(dep models.Dependency) error {
+	protoStorePath, err := GetProtoStorePath()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
+	}
+	return visitor("", dep, protoStorePath)
+}
+
+func visitor(currRelativePath string, dep models.Dependency, protoStorePath string) error {
+	//copy files
+	entries, err := os.ReadDir(path.Join(dep.Path, currRelativePath))
+	if err != nil {
+		return err
 	}
 
-	err = ioutil.WriteFile(destinationFile, input, 0644)
-	if err != nil {
-		fmt.Println("Error creating", destinationFile)
-		fmt.Println(err)
-		return
+	for _, e := range entries {
+		if strings.HasSuffix(e.Name(), ".proto") && !e.Type().IsDir() {
+			src := path.Join(dep.Path, currRelativePath, e.Name())
+			dst := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath, currRelativePath, e.Name())
+			err = Copy(src, dst)
+			if err != nil {
+				return err
+			}
+		}
+
+		//visit folders
+		if e.Type().IsDir() {
+			err = visitor(path.Join(currRelativePath, e.Name()), dep, protoStorePath)
+			if err != nil {
+				return err
+			}
+		}
 	}
+
 	return err
+}
+
+func Copy(sourceFile, destinationFile string) (err error) {
+	if _, err := os.Stat(destinationFile); errors.Is(err, os.ErrNotExist) {
+		input, err := ioutil.ReadFile(sourceFile)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		err = ioutil.WriteFile(destinationFile, input, 0644)
+		if err != nil {
+			fmt.Println("Error creating", destinationFile)
+			fmt.Println(err)
+			return err
+		}
+		return err
+	}
+
+	return nil
 }
