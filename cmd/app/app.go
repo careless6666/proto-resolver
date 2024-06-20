@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"github.com/urfave/cli/v2"
 )
 
@@ -73,7 +74,8 @@ type App struct {
 	//dependencyManager *dependency.Manager
 }
 
-func Generate(ctx *cli.Context) error {
+func Restore(ctx *cli.Context) error {
+	fmt.Println("restored")
 	/*a, err := New(ctx.String("gitlab_token"), ctx.String("github_token"))
 	if err != nil {
 		log.Fatal(err)

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	util := cli.App{
-		Name:  "protodep",
+		Name:  "protodeps",
 		Usage: "vendoring proto files with dependencies",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -27,9 +27,9 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:   "generate",
-				Action: app.Generate,
-				Usage:  "generate proto files",
+				Name:   "restore",
+				Action: app.Restore,
+				Usage:  "download all proto files",
 			},
 		},
 	}
