@@ -110,9 +110,7 @@ func DownloadGitRepo(dep models.Dependency) error {
 	}
 
 	if dep.Version.CommitRevision != "" {
-
-		//git@gitlab.ae-rus.net:common/platform.git
-		//https://gitlab.ae-rus.net/common/platform.git
+		
 		address, err := GetSshPathFromHttp(dep.Path)
 		if err != nil {
 			return err
