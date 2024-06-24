@@ -8,62 +8,15 @@ import (
 	"os"
 )
 
-func New(gitlabToken, githubToken string) (*App, error) {
+func New() (*App, error) {
 
 	/*
-		1) parse file
-		2) download deps
-		3) copy proto files  vendor.deps
-	*/
-	//var err error
-	/*
-		var protodepProvider *protodep.Provider
-		{
-			protodepProvider = protodep.New()
-		}
-
-		var githubProvider *github.Provider
-		{
-			githubProvider, err = github.New(context.Background(), github.Config{
-				Token: githubToken,
-			})
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		var gitlabProvider *gitlab.Provider
-		{
-			gitlabProvider, err = gitlab.New(gitlab.Config{
-				Token: gitlabToken,
-			})
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		var aggregator *provider.Aggregator
-		{
-			aggregator = provider.New(map[model.Domain]model.Provider{
-				model.DomainGitlab: gitlabProvider,
-				model.DomainGithub: githubProvider,
-			})
-		}
-
-		var relativeProvider *relative.Provider
-		{
-			relativeProvider = relative.New(aggregator, model.DomainGithub, model.DomainGitlab)
-		}
-
-		var wktProvider *wkt.Provider
-		{
-			wktProvider = wkt.New(relativeProvider)
-		}
-
-		var dependencyManager *dependency.Manager
-		{
-			dependencyManager = dependency.New(wktProvider)
-		}
+			1) parse file
+			2) download deps
+		      a) copy from folder to deps folder for file deps
+		      b) download file to deps folder from URL
+		      c) clone git repo or update
+			3) copy proto files to vendor.deps directory from home directory ~/.proto_deps
 	*/
 
 	return &App{
