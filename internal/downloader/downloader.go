@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"ProtoDepsResolver/internal/models"
+	"ProtoDepsResolver/internal/utils"
 	"errors"
 	"fmt"
 	"io"
@@ -26,19 +27,9 @@ func NewDownloader() *Downloader {
 	return &Downloader{}
 }
 
-func GetProtoStorePath() (string, error) {
-	dirname, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(dirname, models.RootPath), nil
-
-}
-
 func (d *Downloader) Download(deps []models.Dependency) error {
 
-	protoStorePath, err := GetProtoStorePath()
+	protoStorePath, err := utils.GetProtoStorePath()
 	if err != nil {
 		return err
 	}
@@ -107,25 +98,17 @@ func GetRepoName(URL string) (string, error) {
 }
 
 func DownloadGitRepo(dep models.Dependency) error {
-	protoStorePath, err := GetProtoStorePath()
-
-	if err != nil {
-		return err
-	}
 
 	gitInstalled := exec.Command("git", "--version")
 
-	err = gitInstalled.Run()
+	err := gitInstalled.Run()
 	if err != nil {
 		return errors.New("Git not installed")
 	}
 
-	repoName, err := GetRepoName(dep.Path)
-	if err != nil {
-		return err
-	}
+	protoStorePath, err := utils.GetAbsolutePathForDepInStore(dep)
 
-	protoStorePath = path.Join(protoStorePath, repoName)
+	// TODO: problem repository with same name
 
 	log.Println("git clone " + dep.Path + " to " + protoStorePath)
 
@@ -187,7 +170,7 @@ func setStdCommand(cmd *exec.Cmd) {
 }
 
 func DownloadFile(dep models.Dependency) error {
-	protoStorePath, err := GetProtoStorePath()
+	protoStorePath, err := utils.GetProtoStorePath()
 	urlArr := strings.Split(dep.Path, "/")
 	dstFileName := urlArr[len(urlArr)-1]
 	dstFilePath := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
@@ -221,7 +204,7 @@ func DownloadFile(dep models.Dependency) error {
 
 func copyFileOrFolder(dep models.Dependency) error {
 	//file or directory
-	protoStorePath, err := GetProtoStorePath()
+	protoStorePath, err := utils.GetProtoStorePath()
 	if strings.HasSuffix(dep.Path, ".proto") {
 		file := filepath.Base(dep.Path)
 
@@ -241,12 +224,6 @@ func copyFileOrFolder(dep models.Dependency) error {
 			return err
 		}
 
-	} else if strings.HasSuffix(dep.Path, "*") { //expected directory with one or many proto files
-		dep.Path = dep.Path[:(len(dep.Path) - 1)]
-		err := CopyFilesRecursively(dep)
-		if err != nil {
-			return err
-		}
 	} else { //expected directory with one or many proto files
 		err := CopyFilesRecursively(dep)
 		if err != nil {
@@ -257,7 +234,7 @@ func copyFileOrFolder(dep models.Dependency) error {
 }
 
 func CopyFilesRecursively(dep models.Dependency) error {
-	protoStorePath, err := GetProtoStorePath()
+	protoStorePath, err := utils.GetProtoStorePath()
 	if err != nil {
 		return err
 	}

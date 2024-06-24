@@ -3,6 +3,7 @@ package app
 import (
 	"ProtoDepsResolver/internal/downloader"
 	"ProtoDepsResolver/internal/parser"
+	"ProtoDepsResolver/internal/resolver"
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -54,6 +55,8 @@ func Restore(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	err = resolver.Resolver{}.Resolve(deps)
 
 	return nil
 }
