@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -95,37 +96,94 @@ func GetSshPathFromHttp(URL string) (string, error) {
 	return sshPath, nil
 }
 
-func DownloadGitRepo(dep models.Dependency) error {
-	gitInstalled := exec.Command("git", "--version")
+func GetRepoName(URL string) (string, error) {
+	arr := strings.Split(URL, "/")
+	lastPart := arr[len(arr)-1]
+	if strings.HasSuffix(lastPart, ".git") {
+		return lastPart[:len(lastPart)-4], nil
+	}
 
+	return "", errors.New("Invalid repo name: " + URL + " expected end with *.git")
+}
+
+func DownloadGitRepo(dep models.Dependency) error {
 	protoStorePath, err := GetProtoStorePath()
 
 	if err != nil {
 		return err
 	}
 
+	gitInstalled := exec.Command("git", "--version")
+
 	err = gitInstalled.Run()
 	if err != nil {
 		return errors.New("Git not installed")
 	}
 
+	repoName, err := GetRepoName(dep.Path)
+	if err != nil {
+		return err
+	}
+
+	protoStorePath = path.Join(protoStorePath, repoName)
+
+	log.Println("git clone " + dep.Path + " to " + protoStorePath)
+
+	if _, err := os.Stat(protoStorePath); !os.IsNotExist(err) {
+		fmt.Println("repo exist skip clone")
+		// TODO: git pull if flag enable update!
+		//pullCmd := exec.Command("git", "clone", dep.Path, protoStorePath)
+		//setStdCommand(pullCmd)
+		//err = pullCmd.Run()
+
+		//if err != nil {
+		//	return err
+		//}
+	} else {
+		cloneCmd := exec.Command("git", "clone", dep.Path, protoStorePath)
+
+		setStdCommand(cloneCmd)
+		err = cloneCmd.Run()
+
+		if err != nil {
+			return err
+		}
+	}
+
+	gitFolder := path.Join(protoStorePath, ".git")
+
 	if dep.Version.CommitRevision != "" {
-		
-		address, err := GetSshPathFromHttp(dep.Path)
+
+		checkoutCmd := exec.Command("git", "--git-dir", gitFolder, "--work-tree", protoStorePath,
+			"checkout", dep.Version.CommitRevision)
+
+		setStdCommand(checkoutCmd)
+		err = checkoutCmd.Run()
+
 		if err != nil {
 			return err
 		}
 
-		protoStorePath = path.Join(dep.Version.Tag, dep.Version.CommitRevision, protoStorePath)
+	} else {
+		cmd := exec.Command("git", "--git-dir", gitFolder, "--work-tree", protoStorePath,
+			"checkout", "tags/"+dep.Version.Tag, "-f")
 
-		cloneCmd := exec.Command("git", "clone", address, protoStorePath, "--depth 1")
+		setStdCommand(cmd)
+		err = cmd.Run()
 
-		fmt.Println(cloneCmd)
-
-		return nil
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
 	}
 
 	return nil
+}
+
+func setStdCommand(cmd *exec.Cmd) {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 }
 
 func DownloadFile(dep models.Dependency) error {
