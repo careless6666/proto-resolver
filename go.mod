@@ -3,7 +3,9 @@ module ProtoDepsResolver
 go 1.22
 
 require (
+	github.com/mattn/go-zglob v0.0.4
 	github.com/stretchr/testify v1.9.0
+	github.com/thoas/go-funk v0.9.3
 	github.com/urfave/cli/v2 v2.25.7
 	go.uber.org/mock v0.4.0
 )
