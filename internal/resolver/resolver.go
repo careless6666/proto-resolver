@@ -5,11 +5,9 @@ import (
 	"ProtoDepsResolver/internal/utils"
 	"github.com/mattn/go-zglob"
 	"github.com/thoas/go-funk"
-	"io"
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 )
 
 const (
@@ -46,12 +44,7 @@ func CopyProtoTree(dep models.Dependency) error {
 		return err
 	}
 
-	repoPath, err := utils.GetRelativePathForDepInStore(dep)
-	if err != nil {
-		return err
-	}
-
-	protoPath := path.Join(projectPath, vendorDeps, repoPath)
+	protoPath := path.Join(projectPath, vendorDeps, dep.DestinationPath)
 
 	_, err = os.Stat(protoPath)
 	if os.IsNotExist(err) {
@@ -85,24 +78,19 @@ func CopyProtoTree(dep models.Dependency) error {
 		}
 	}
 
-	fullDstPath := ""
-	if dep.Type == models.DependencyTypePath || dep.Type == models.DependencyTypeURL {
-		fullDstPath = filepath.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
-	} else {
-		fullDstPath, err = utils.GetRepoPathFromAddress(dep.Path)
+	for _, file := range matches {
+		logInfo(file)
+		if !funk.Contains(file, dep.DestinationPath) {
+			continue
+		}
+
+		relativePath, err := makeNewPathOnCopy(file, dep)
 		if err != nil {
 			return err
 		}
 
-		fullDstPath = path.Join(fullDstPath, dep.GitPath)
-	}
-
-	for _, file := range matches {
-		logInfo(file)
-		if !funk.Contains(file, fullDstPath) {
-			continue
-		}
-		err = CopyFile(file, path.Join(projectPath, vendorDeps, fullDstPath))
+		fullDstPath := path.Join(projectPath, vendorDeps, relativePath)
+		err = utils.CopyFile(file, fullDstPath)
 		if err != nil {
 			return err
 		}
@@ -111,36 +99,29 @@ func CopyProtoTree(dep models.Dependency) error {
 	return nil
 }
 
-func CopyFile(src, dst string) (err error) {
-	dstDirectoryPath := filepath.Dir(dst)
-	_, err = os.Stat(src)
-	if err != nil {
-		return
-	}
-	err = os.MkdirAll(dstDirectoryPath, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	out, err := os.Create(dst)
-	defer out.Close()
-	if err != nil {
-		return err
-	}
-	input, err := os.OpenFile(src, 0, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(out, input)
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
 func logInfo(message string) {
 	if _verbosity {
 		log.Println(message)
 	}
+}
+
+func makeNewPathOnCopy(matchedFile string, dep models.Dependency) (string, error) {
+	dstPath := dep.DestinationPath
+
+	if dep.Type == models.DependencyTypeGit {
+		pathFromAddress, err := utils.GetRepoPathFromAddress(dep.Path)
+		if err != nil {
+			return "", err
+		}
+		dstPath = path.Join(pathFromAddress, dep.DestinationPath)
+	}
+
+	start := funk.IndexOf(matchedFile, dstPath)
+
+	//equal from middle to end
+	if start+len(dstPath) == len(matchedFile) {
+		return dstPath, nil
+	}
+
+	return dstPath + matchedFile[start+len(dstPath):], nil
 }

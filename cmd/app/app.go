@@ -58,5 +58,9 @@ func Restore(ctx *cli.Context) error {
 
 	err = resolver.Resolver{}.Resolve(deps)
 
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

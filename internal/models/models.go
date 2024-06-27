@@ -12,11 +12,9 @@ type Dependency struct {
 	//locale | remote
 	Type int
 	Path string
-	// for url | path
+	// path where should be stored inside result repository
 	DestinationPath string
-	// path inside git repo
-	GitPath string
-	Version *VersionInfo
+	Version         *VersionInfo
 }
 
 type VersionInfo struct {

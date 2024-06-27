@@ -6,13 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -43,7 +41,7 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 		switch dep.Type {
 		case models.DependencyTypePath:
 			{
-				err = copyFileOrFolder(dep)
+				err = utils.CopyFileOrFolder(dep)
 				if err != nil {
 					return err
 				}
@@ -72,19 +70,6 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 	}
 
 	return nil
-}
-
-func GetSshPathFromHttp(URL string) (string, error) {
-
-	pathArr := strings.Split(URL, "/")
-
-	if len(pathArr) < 3 {
-		return "", errors.New("Invalid github repo path: " + URL)
-	}
-
-	sshPath := "git@" + URL + "/" + strings.Join(pathArr[1:], "/")
-
-	return sshPath, nil
 }
 
 func GetRepoName(URL string) (string, error) {
@@ -200,92 +185,4 @@ func DownloadFile(dep models.Dependency) error {
 	}
 
 	return err
-}
-
-func copyFileOrFolder(dep models.Dependency) error {
-	//file or directory
-	protoStorePath, err := utils.GetProtoStorePath()
-	if strings.HasSuffix(dep.Path, ".proto") {
-		file := filepath.Base(dep.Path)
-
-		if err != nil {
-			return err
-		}
-
-		fullDstPath := filepath.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
-
-		err = os.MkdirAll(fullDstPath, os.ModePerm)
-		if err != nil {
-			return err
-		}
-
-		err = Copy(dep.Path, path.Join(fullDstPath, file))
-		if err != nil {
-			return err
-		}
-
-	} else { //expected directory with one or many proto files
-		err := CopyFilesRecursively(dep)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func CopyFilesRecursively(dep models.Dependency) error {
-	protoStorePath, err := utils.GetProtoStorePath()
-	if err != nil {
-		return err
-	}
-	return visitor("", dep, protoStorePath)
-}
-
-func visitor(currRelativePath string, dep models.Dependency, protoStorePath string) error {
-	//copy files
-	entries, err := os.ReadDir(path.Join(dep.Path, currRelativePath))
-	if err != nil {
-		return err
-	}
-
-	for _, e := range entries {
-		if strings.HasSuffix(e.Name(), ".proto") && !e.Type().IsDir() {
-			src := path.Join(dep.Path, currRelativePath, e.Name())
-			dst := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath, currRelativePath, e.Name())
-			err = Copy(src, dst)
-			if err != nil {
-				return err
-			}
-		}
-
-		//visit folders
-		if e.Type().IsDir() {
-			err = visitor(path.Join(currRelativePath, e.Name()), dep, protoStorePath)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return err
-}
-
-func Copy(sourceFile, destinationFile string) (err error) {
-	if _, err := os.Stat(destinationFile); errors.Is(err, os.ErrNotExist) {
-		input, err := ioutil.ReadFile(sourceFile)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-
-		err = ioutil.WriteFile(destinationFile, input, 0644)
-		if err != nil {
-			fmt.Println("Error creating", destinationFile)
-			fmt.Println(err)
-			return err
-		}
-		return err
-	}
-
-	return nil
 }

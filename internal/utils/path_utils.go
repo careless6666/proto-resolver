@@ -3,8 +3,10 @@ package utils
 import (
 	"ProtoDepsResolver/internal/models"
 	"errors"
+	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -109,4 +111,100 @@ func GetRelativePathForDepInStore(dep models.Dependency) (string, error) {
 	}
 
 	return "", nil
+}
+
+func CopyFile(src, dst string) (err error) {
+	dstDirectoryPath := filepath.Dir(dst)
+	_, err = os.Stat(src)
+	if err != nil {
+		return
+	}
+	err = os.MkdirAll(dstDirectoryPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	out, err := os.Create(dst)
+	defer out.Close()
+	if err != nil {
+		return err
+	}
+	input, err := os.OpenFile(src, 0, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(out, input)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func CopyFileOrFolder(dep models.Dependency) error {
+	//file or directory
+	protoStorePath, err := GetProtoStorePath()
+	if strings.HasSuffix(dep.Path, ".proto") {
+		file := filepath.Base(dep.Path)
+
+		if err != nil {
+			return err
+		}
+
+		fullDstPath := filepath.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
+
+		err = os.MkdirAll(fullDstPath, os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		err = CopyFile(dep.Path, path.Join(fullDstPath, file))
+		if err != nil {
+			return err
+		}
+
+	} else { //expected directory with one or many proto files
+		err := CopyFilesRecursively(dep)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func CopyFilesRecursively(dep models.Dependency) error {
+	protoStorePath, err := GetProtoStorePath()
+	if err != nil {
+		return err
+	}
+	return visitor("", dep, protoStorePath)
+}
+
+func visitor(currRelativePath string, dep models.Dependency, protoStorePath string) error {
+	//copy files
+	entries, err := os.ReadDir(path.Join(dep.Path, currRelativePath))
+	if err != nil {
+		return err
+	}
+
+	for _, e := range entries {
+		if strings.HasSuffix(e.Name(), ".proto") && !e.Type().IsDir() {
+			src := path.Join(dep.Path, currRelativePath, e.Name())
+			dst := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath, currRelativePath, e.Name())
+			err = CopyFile(src, dst)
+			if err != nil {
+				return err
+			}
+		}
+
+		//visit folders
+		if e.Type().IsDir() {
+			err = visitor(path.Join(currRelativePath, e.Name()), dep, protoStorePath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
 }

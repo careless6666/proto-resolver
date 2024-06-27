@@ -157,8 +157,7 @@ func getGitDeps(dependency string) (*models.Dependency, error) {
 	return &models.Dependency{
 		Type:            models.DependencyTypeGit,
 		Path:            depPaths[0],
-		GitPath:         depPaths[1],
-		DestinationPath: "",
+		DestinationPath: depPaths[1],
 		Version:         version,
 	}, nil
 }
