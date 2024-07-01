@@ -4,13 +4,14 @@ import (
 	"ProtoDepsResolver/internal/downloader"
 	"ProtoDepsResolver/internal/parser"
 	"ProtoDepsResolver/internal/resolver"
+	"ProtoDepsResolver/internal/utils"
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"os"
+	"strings"
 )
 
 func New() (*App, error) {
-
 	/*
 			1) parse file
 			2) download deps
@@ -20,18 +21,17 @@ func New() (*App, error) {
 			3) copy proto files to vendor.deps directory from home directory ~/.proto_deps
 	*/
 
-	return &App{
-		//protodepProvider:  protodepProvider,
-		//dependencyManager: dependencyManager,
-	}, nil
+	return &App{}, nil
 }
 
-type App struct {
-	//protodepProvider  *protodep.Provider
-	//dependencyManager *dependency.Manager
-}
+type App struct{}
 
 func Restore(ctx *cli.Context) error {
+
+	if strings.EqualFold(ctx.String("verbose"), "true") {
+		utils.Verbosity = true
+	}
+
 	fmt.Println("restored")
 
 	var fileReader parser.IFileReader = parser.NewFileReader()

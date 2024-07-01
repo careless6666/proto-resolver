@@ -5,7 +5,6 @@ import (
 	"ProtoDepsResolver/internal/utils"
 	"github.com/mattn/go-zglob"
 	"github.com/thoas/go-funk"
-	"log"
 	"os"
 	"path"
 )
@@ -79,7 +78,7 @@ func CopyProtoTree(dep models.Dependency) error {
 	}
 
 	for _, file := range matches {
-		logInfo(file)
+		utils.LogInfo(file)
 		if !funk.Contains(file, dep.DestinationPath) {
 			continue
 		}
@@ -97,12 +96,6 @@ func CopyProtoTree(dep models.Dependency) error {
 	}
 
 	return nil
-}
-
-func logInfo(message string) {
-	if _verbosity {
-		log.Println(message)
-	}
 }
 
 func makeNewPathOnCopy(matchedFile string, dep models.Dependency) (string, error) {

@@ -24,6 +24,18 @@ func main() {
 				Usage:    "github access token",
 				Required: false,
 			},
+			&cli.StringFlag{
+				Name:     "git_pull",
+				Value:    "true",
+				Usage:    "git enable pull",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name:     "verbose",
+				Value:    "false",
+				Usage:    "verbose",
+				Required: false,
+			},
 		},
 		Commands: []*cli.Command{
 			{

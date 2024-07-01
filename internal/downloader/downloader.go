@@ -4,7 +4,7 @@ import (
 	"ProtoDepsResolver/internal/models"
 	"ProtoDepsResolver/internal/utils"
 	"errors"
-	"fmt"
+	"github.com/thoas/go-funk"
 	"io"
 	"log"
 	"net/http"
@@ -19,10 +19,14 @@ type IDownloader interface {
 	Download(deps []models.Dependency) error
 }
 
-type Downloader struct{}
+type Downloader struct {
+	enablePull bool
+}
 
-func NewDownloader() *Downloader {
-	return &Downloader{}
+func NewDownloader(enablePull bool) *Downloader {
+	return &Downloader{
+		enablePull: enablePull,
+	}
 }
 
 func (d *Downloader) Download(deps []models.Dependency) error {
@@ -57,7 +61,7 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 			}
 		case models.DependencyTypeGit:
 			{
-				err = DownloadGitRepo(dep)
+				err = d.DownloadGitRepo(dep)
 				if err != nil {
 					return err
 				}
@@ -82,7 +86,7 @@ func GetRepoName(URL string) (string, error) {
 	return "", errors.New("Invalid repo name: " + URL + " expected end with *.git")
 }
 
-func DownloadGitRepo(dep models.Dependency) error {
+func (d *Downloader) DownloadGitRepo(dep models.Dependency) error {
 
 	gitInstalled := exec.Command("git", "--version")
 
@@ -93,20 +97,41 @@ func DownloadGitRepo(dep models.Dependency) error {
 
 	protoStorePath, err := utils.GetAbsolutePathForDepInStore(dep)
 
+	// TODO: branch name as deps
+	// TODO: git clone with github token
 	// TODO: problem repository with same name
+	// TODO: enable pull mode
 
-	log.Println("git clone " + dep.Path + " to " + protoStorePath)
+	utils.LogVerbose("git clone " + dep.Path + " to " + protoStorePath)
 
 	if _, err := os.Stat(protoStorePath); !os.IsNotExist(err) {
-		fmt.Println("repo exist skip clone")
-		// TODO: git pull if flag enable update!
-		//pullCmd := exec.Command("git", "clone", dep.Path, protoStorePath)
-		//setStdCommand(pullCmd)
-		//err = pullCmd.Run()
+		utils.LogVerbose("repo exist skip clone")
 
-		//if err != nil {
-		//	return err
-		//}
+		branchName, err := getBranchName(protoStorePath)
+		if err != nil {
+			return err
+		}
+
+		gitCheckoutCmd := exec.Command("git", "checkout", *branchName)
+		gitCheckoutCmd.Dir = protoStorePath
+		setStdCommand(gitCheckoutCmd)
+
+		err = gitCheckoutCmd.Run()
+		if err != nil {
+			return err
+		}
+
+		if d.enablePull {
+			pullCmd := exec.Command("git", "pull")
+			pullCmd.Dir = path.Join(protoStorePath)
+			setStdCommand(pullCmd)
+			err = pullCmd.Run()
+
+			if err != nil {
+				return err
+			}
+		}
+
 	} else {
 		cloneCmd := exec.Command("git", "clone", dep.Path, protoStorePath)
 
@@ -146,6 +171,49 @@ func DownloadGitRepo(dep models.Dependency) error {
 	}
 
 	return nil
+}
+
+func getBranchName(protoStorePath string) (*string, error) {
+	branchList := exec.Command("git", "branch", "-a")
+	branchList.Dir = path.Join(protoStorePath)
+	//setStdCommand(branchList)
+	outputBranches, err := branchList.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	utils.LogVerbose(string(outputBranches))
+	branches := strings.Split(string(outputBranches), "\n")
+	utils.LogVerbose(branches[0])
+	for i := 0; i < len(branches); i++ {
+		branches[i] = strings.Replace(branches[i], "*", "", -1)
+		branches[i] = strings.TrimSpace(branches[i])
+	}
+
+	//search with priority
+	// 1) master or main
+	// 2) any local
+	// 3) any remote
+
+	for _, branch := range branches {
+		if (funk.Contains(branch, "main") || funk.Contains(branch, "master")) && !funk.Contains(branch, "remotes") {
+			return &branch, nil
+		}
+	}
+
+	for _, branch := range branches {
+		if !funk.Contains(branch, "remotes") && !funk.Contains(branch, "detached") {
+			return &branch, nil
+		}
+	}
+
+	for _, branch := range branches {
+		if funk.Contains(branch, "remotes") {
+			return &branch, nil
+		}
+	}
+
+	return nil, errors.New("Could not find any branch to fetch")
 }
 
 func setStdCommand(cmd *exec.Cmd) {
