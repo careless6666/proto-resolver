@@ -1,6 +1,6 @@
 module ProtoDepsResolver
 
-go 1.22
+go 1.19
 
 require (
 	github.com/mattn/go-zglob v0.0.4

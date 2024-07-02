@@ -43,15 +43,6 @@ func CopyProtoTree(dep models.Dependency) error {
 		return err
 	}
 
-	protoPath := path.Join(projectPath, vendorDeps, dep.DestinationPath)
-
-	_, err = os.Stat(protoPath)
-	if os.IsNotExist(err) {
-		if err = os.MkdirAll(protoPath, os.ModePerm); err != nil {
-			return err
-		}
-	}
-
 	protoStorePath, err := utils.GetProtoStorePath()
 	if err != nil {
 		return err
