@@ -2,6 +2,8 @@ package utils
 
 import (
 	"ProtoDepsResolver/internal/models"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"io"
 	"os"
@@ -81,17 +83,46 @@ func GetAbsolutePathForDepInStore(dep models.Dependency) (string, error) {
 
 	case models.DependencyTypeURL:
 		{
-			dstFolderPath := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
+			projectId, err := GetProjectId()
+			if err != nil {
+				return "", err
+			}
+			depType := GetDepTypeString(dep.Type)
+			dstFolderPath := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
 			return dstFolderPath, nil
 		}
 	case models.DependencyTypePath:
 		{
-			dstFolderPath := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
+			projectId, err := GetProjectId()
+			if err != nil {
+				return "", err
+			}
+			depType := GetDepTypeString(dep.Type)
+			dstFolderPath := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
 			return dstFolderPath, nil
 		}
 	}
 
 	return "", nil
+}
+
+func GetDepTypeString(depType int) string {
+	switch depType {
+	case models.DependencyTypeGit:
+		{
+			return "git"
+		}
+	case models.DependencyTypePath:
+		{
+			return "path"
+		}
+	case models.DependencyTypeURL:
+		{
+			return "url"
+		}
+	}
+
+	return ""
 }
 
 func GetRelativePathForDepInStore(dep models.Dependency) (string, error) {
@@ -100,17 +131,40 @@ func GetRelativePathForDepInStore(dep models.Dependency) (string, error) {
 		return GetRepoPathFromAddressInStorage(dep.Path)
 	case models.DependencyTypeURL:
 		{
-			dstFolderPath := path.Join(dep.Version.Tag, dep.DestinationPath)
+			projectId, err := GetProjectId()
+			if err != nil {
+				return "", err
+			}
+			depType := GetDepTypeString(dep.Type)
+			dstFolderPath := path.Join(projectId, depType, dep.Version.Tag, dep.DestinationPath)
 			return dstFolderPath, nil
 		}
 	case models.DependencyTypePath:
 		{
-			dstFolderPath := path.Join(dep.Version.Tag, dep.DestinationPath)
+			projectId, err := GetProjectId()
+			if err != nil {
+				return "", err
+			}
+			depType := GetDepTypeString(dep.Type)
+			dstFolderPath := path.Join(projectId, depType, dep.Version.Tag, dep.DestinationPath)
 			return dstFolderPath, nil
 		}
 	}
 
 	return "", nil
+}
+
+// To eliminate scenarios of colliding searches for nested proto files between projects with similar dependencies,
+// let’s separate them by project separately
+func GetProjectId() (string, error) {
+	s, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	h := sha1.New()
+	h.Write([]byte(s))
+	project_id := hex.EncodeToString(h.Sum(nil))
+	return project_id, nil
 }
 
 func CopyFile(src, dst string) (err error) {
@@ -151,7 +205,14 @@ func CopyFileOrFolder(dep models.Dependency) error {
 			return err
 		}
 
-		fullDstPath := filepath.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
+		projectId, err := GetProjectId()
+		if err != nil {
+			return err
+		}
+
+		depType := GetDepTypeString(dep.Type)
+
+		fullDstPath := filepath.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
 
 		err = os.MkdirAll(fullDstPath, os.ModePerm)
 		if err != nil {
@@ -186,11 +247,16 @@ func visitor(currRelativePath string, dep models.Dependency, protoStorePath stri
 	if err != nil {
 		return err
 	}
+	depType := GetDepTypeString(dep.Type)
+	projectId, err := GetProjectId()
+	if err != nil {
+		return err
+	}
 
 	for _, e := range entries {
 		if strings.HasSuffix(e.Name(), ".proto") && !e.Type().IsDir() {
 			src := path.Join(dep.Path, currRelativePath, e.Name())
-			dst := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath, currRelativePath, e.Name())
+			dst := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath, currRelativePath, e.Name())
 			err = CopyFile(src, dst)
 			if err != nil {
 				return err

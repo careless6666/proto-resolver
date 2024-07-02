@@ -226,7 +226,11 @@ func DownloadFile(dep models.Dependency) error {
 	protoStorePath, err := utils.GetProtoStorePath()
 	urlArr := strings.Split(dep.Path, "/")
 	dstFileName := urlArr[len(urlArr)-1]
-	dstFilePath := path.Join(protoStorePath, dep.Version.Tag, dep.DestinationPath)
+
+	projectId, err := utils.GetProjectId()
+	depType := utils.GetDepTypeString(dep.Type)
+
+	dstFilePath := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
 
 	destinationFile := path.Join(dstFilePath, dstFileName)
 

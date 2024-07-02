@@ -58,6 +58,84 @@ deps:
 	defer os.RemoveAll(testDir)
 }
 
+func TestLocalFilesOnlyDeps(t *testing.T) {
+	// Arrange
+
+	curDir, err := os.Getwd()
+	require.NoError(t, err)
+	curDir = path.Dir(curDir)
+	curDir = path.Dir(curDir)
+
+	curDir = path.Join(curDir, "samples", "local_files_only", "many_files_one_folder", "src", "greet.proto")
+
+	depsFile := `version: v1
+deps:
+  - path: ` + curDir + " github.com/googleapis/api v1"
+
+	testDir, err := createdepsFileAndDir(t, depsFile)
+
+	err = os.Chdir(testDir)
+	require.NoError(t, err)
+
+	// Act
+	err = app.Restore(nil)
+	require.NoError(t, err)
+
+	// Assert
+	m := map[string][]string{
+		"":                                     {"proto_deps.yml", "vendor.pb"},
+		"/vendor.pb":                           {"github.com"},
+		"/vendor.pb/github.com":                {"googleapis"},
+		"/vendor.pb/github.com/googleapis":     {"api"},
+		"/vendor.pb/github.com/googleapis/api": {"greet.proto"},
+	}
+
+	err = checkFolderContentEquality(t, testDir, m)
+
+	if err != nil {
+		log.Fatal(err)
+		require.NoError(t, err)
+	}
+
+	defer os.RemoveAll(testDir)
+}
+
+func TestGitOnlyDepsCommitRevision(t *testing.T) {
+	// Arrange
+	depsFile := `version: v1
+deps:
+  - git: https://github.com/googleapis/googleapis.git google/api/annotations.proto v0.0.0-20211005231101-409e134ffaac`
+
+	testDir, err := createdepsFileAndDir(t, depsFile)
+
+	err = os.Chdir(testDir)
+	require.NoError(t, err)
+
+	// Act
+	err = app.Restore(nil)
+	require.NoError(t, err)
+
+	// Assert
+	m := map[string][]string{
+		"":                                 {"proto_deps.yml", "vendor.pb"},
+		"/vendor.pb":                       {"github.com"},
+		"/vendor.pb/github.com":            {"googleapis"},
+		"/vendor.pb/github.com/googleapis": {"googleapis"},
+		"/vendor.pb/github.com/googleapis/googleapis":            {"google"},
+		"/vendor.pb/github.com/googleapis/googleapis/google":     {"api"},
+		"/vendor.pb/github.com/googleapis/googleapis/google/api": {"annotations.proto"},
+	}
+
+	err = checkFolderContentEquality(t, testDir, m)
+
+	if err != nil {
+		log.Fatal(err)
+		require.NoError(t, err)
+	}
+
+	defer os.RemoveAll(testDir)
+}
+
 func createdepsFileAndDir(t *testing.T, depsFileContent string) (string, error) {
 	dirname := os.TempDir()
 	testDir := path.Join(dirname, "proto_test", strconv.FormatInt(time.Now().Unix(), 10))

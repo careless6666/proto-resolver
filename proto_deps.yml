@@ -1,7 +1,7 @@
 version: v1
 deps:
-#  - path: /Users/alexander.usov/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api/annotations.proto ./github.com/googleapis v1
-#  - path: /Users/alexander.usov/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api/ ./github.com/googleapis v1
-#  - url: https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto github.com/googleapis/googleapis/google/api v1
-  - git: https://github.com/googleapis/googleapis.git /google/api/http.proto v0.0.0-20211005231101-409e134ffaac
+#  - path: /Users/alexander.usov/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api/annotations.proto github.com/googleapis v1
+#  - path: /Users/alexander.usov/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api/ github.com/googleapis v1
+  - url: https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto github.com/googleapis/googleapis/google/api v1
+#  - git: https://github.com/googleapis/googleapis.git /google/api/http.proto v0.0.0-20211005231101-409e134ffaac
 #  - git: https://github.com/googleapis/googleapis.git /google/api/annotations.proto v0.0.0-20211005231101-409e134ffaac
