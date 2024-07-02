@@ -1,0 +1,3 @@
+version: v1
+deps:
+  - path: /Users/alex/Documents/google_api_proto/github.com/googleapis/googleapis/google/api/annotations.proto ./github.com/googleapis v1
