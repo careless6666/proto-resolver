@@ -49,7 +49,7 @@ func Restore(ctx *cli.Context) error {
 		return err
 	}
 
-	depsDownloader := downloader.NewDownloader()
+	depsDownloader := downloader.NewDownloader(true)
 	err = depsDownloader.Download(deps)
 
 	if err != nil {
