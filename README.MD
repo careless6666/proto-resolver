@@ -2,15 +2,22 @@
 
 ## How to use it
 
-Firstly you should configure file with deps in format: 
+Firstly you should configure file with name proto_deps.json with deps in format: 
 
 http mode
 
-```yaml
-version: v1
-deps:
-  - url: https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto github.com/googleapis/googleapis/google/api v1
-  - url: https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto github.com/googleapis/googleapis/google/api v1
+```json
+{
+  "version": "v1",
+  "deps": [
+    {
+      "type": "url",
+      "source": "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto",
+      "relativePath": "github.com/googleapis/googleapis/google/api",
+      "version": "v1"
+    }
+  ]
+}
 ```
 
 Secondly install tool:
