@@ -9,7 +9,7 @@
     },
     {
       "type": "path",
-      "source": "/Users/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api",
+      "source": "/Users/alexander.usov/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api",
       "relativePath": "github.com/googleapis",
       "version": "v1"
     },
