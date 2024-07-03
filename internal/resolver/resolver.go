@@ -14,7 +14,7 @@ const (
 )
 
 type IResolver interface {
-	Resolve(dependency []models.Dependency) error
+	Resolve(dependency []models.DependencyItem) error
 }
 
 type Resolver struct {
@@ -22,7 +22,7 @@ type Resolver struct {
 
 var _verbosity = false
 
-func (Resolver) Resolve(dependency []models.Dependency) error {
+func (Resolver) Resolve(dependency []models.DependencyItem) error {
 	if err := os.RemoveAll(path.Join(vendorDeps)); err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (Resolver) Resolve(dependency []models.Dependency) error {
 	return nil
 }
 
-func CopyProtoTree(dep models.Dependency) error {
+func CopyProtoTree(dep models.DependencyItem) error {
 	projectPath, err := os.Getwd()
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func CopyProtoTree(dep models.Dependency) error {
 
 	for _, file := range matches {
 		utils.LogInfo(file)
-		if !funk.Contains(file, dep.DestinationPath) {
+		if !funk.Contains(file, dep.RelativePath) {
 			continue
 		}
 
@@ -89,15 +89,15 @@ func CopyProtoTree(dep models.Dependency) error {
 	return nil
 }
 
-func makeNewPathOnCopy(matchedFile string, dep models.Dependency) (string, error) {
-	dstPath := dep.DestinationPath
+func makeNewPathOnCopy(matchedFile string, dep models.DependencyItem) (string, error) {
+	dstPath := dep.RelativePath
 
 	if dep.Type == models.DependencyTypeGit {
-		pathFromAddress, err := utils.GetRepoPathFromAddress(dep.Path)
+		pathFromAddress, err := utils.GetRepoPathFromAddress(dep.Source)
 		if err != nil {
 			return "", err
 		}
-		dstPath = path.Join(pathFromAddress, dep.DestinationPath)
+		dstPath = path.Join(pathFromAddress, dep.RelativePath)
 	}
 
 	start := funk.IndexOf(matchedFile, dstPath)

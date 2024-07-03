@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -43,7 +44,7 @@ func Restore(ctx *cli.Context) error {
 		os.Exit(1)
 	}
 
-	deps, err := depsParser.GetDeps(pwd + "/proto_deps.yml")
+	deps, err := depsParser.GetDeps(path.Join(pwd, "proto_deps.json"))
 
 	if err != nil {
 		return err

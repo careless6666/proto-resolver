@@ -1,0 +1,47 @@
+{
+  "version": "v1",
+  "deps": [
+    {
+      "type": "path",
+      "source": "/Users/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api/annotations.proto",
+      "relativePath": "github.com/googleapis",
+      "version": "v1"
+    },
+    {
+      "type": "path",
+      "source": "/Users/Documents/ae/gitlab/platform/dotnet/main-service/src/Aer.RegressPlatform.Grpc/Api/vendor.pb/github.com/googleapis/googleapis/google/api",
+      "relativePath": "github.com/googleapis",
+      "version": "v1"
+    },
+    {
+      "type": "url",
+      "source": "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto",
+      "relativePath": "github.com/googleapis/googleapis/google/api",
+      "version": "v1"
+    },
+    {
+      "type": "git",
+      "source": "https://github.com/googleapis/googleapis.git",
+      "relativePath": "google/api/http.proto",
+      "commitRevision": "409e134ffaac"
+    },
+    {
+      "type": "git",
+      "source": "https://github.com/googleapis/googleapis.git",
+      "relativePath": "google/api/annotations.proto",
+      "commitRevision": "409e134ffaac"
+    },
+    {
+      "type": "git",
+      "source": "https://github.com/googleapis/googleapis.git",
+      "relativePath": "google/api/annotations.proto",
+      "branch": "master"
+    },
+    {
+      "type": "git",
+      "source": "https://github.com/googleapis/googleapis.git",
+      "relativePath": "google/api/annotations.proto",
+      "tag": "common-protos-1_3_1"
+    }
+  ]
+}

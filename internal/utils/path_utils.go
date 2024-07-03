@@ -65,7 +65,7 @@ func GetRepoPathFromAddressInStorage(URL string) (string, error) {
 	return relativeAddress, nil
 }
 
-func GetAbsolutePathForDepInStore(dep models.Dependency) (string, error) {
+func GetAbsolutePathForDepInStore(dep models.DependencyItem) (string, error) {
 	protoStorePath, err := GetProtoStorePath()
 	if err != nil {
 		return "", err
@@ -74,7 +74,7 @@ func GetAbsolutePathForDepInStore(dep models.Dependency) (string, error) {
 	switch dep.Type {
 	case models.DependencyTypeGit:
 		{
-			relativePath, err := GetRepoPathFromAddressInStorage(dep.Path)
+			relativePath, err := GetRepoPathFromAddressInStorage(dep.Source)
 			if err != nil {
 				return "", err
 			}
@@ -87,8 +87,7 @@ func GetAbsolutePathForDepInStore(dep models.Dependency) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			depType := GetDepTypeString(dep.Type)
-			dstFolderPath := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
+			dstFolderPath := path.Join(protoStorePath, projectId, dep.Type, dep.Tag, dep.RelativePath)
 			return dstFolderPath, nil
 		}
 	case models.DependencyTypePath:
@@ -97,8 +96,7 @@ func GetAbsolutePathForDepInStore(dep models.Dependency) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			depType := GetDepTypeString(dep.Type)
-			dstFolderPath := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
+			dstFolderPath := path.Join(protoStorePath, projectId, dep.Type, dep.Tag, dep.RelativePath)
 			return dstFolderPath, nil
 		}
 	}
@@ -106,37 +104,17 @@ func GetAbsolutePathForDepInStore(dep models.Dependency) (string, error) {
 	return "", nil
 }
 
-func GetDepTypeString(depType int) string {
-	switch depType {
-	case models.DependencyTypeGit:
-		{
-			return "git"
-		}
-	case models.DependencyTypePath:
-		{
-			return "path"
-		}
-	case models.DependencyTypeURL:
-		{
-			return "url"
-		}
-	}
-
-	return ""
-}
-
-func GetRelativePathForDepInStore(dep models.Dependency) (string, error) {
+func GetRelativePathForDepInStore(dep models.DependencyItem) (string, error) {
 	switch dep.Type {
 	case models.DependencyTypeGit:
-		return GetRepoPathFromAddressInStorage(dep.Path)
+		return GetRepoPathFromAddressInStorage(dep.Source)
 	case models.DependencyTypeURL:
 		{
 			projectId, err := GetProjectId()
 			if err != nil {
 				return "", err
 			}
-			depType := GetDepTypeString(dep.Type)
-			dstFolderPath := path.Join(projectId, depType, dep.Version.Tag, dep.DestinationPath)
+			dstFolderPath := path.Join(projectId, dep.Type, dep.Tag, dep.RelativePath)
 			return dstFolderPath, nil
 		}
 	case models.DependencyTypePath:
@@ -145,8 +123,7 @@ func GetRelativePathForDepInStore(dep models.Dependency) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			depType := GetDepTypeString(dep.Type)
-			dstFolderPath := path.Join(projectId, depType, dep.Version.Tag, dep.DestinationPath)
+			dstFolderPath := path.Join(projectId, dep.Type, dep.Tag, dep.RelativePath)
 			return dstFolderPath, nil
 		}
 	}
@@ -195,11 +172,11 @@ func CopyFile(src, dst string) (err error) {
 	return err
 }
 
-func CopyFileOrFolder(dep models.Dependency) error {
+func CopyFileOrFolder(dep models.DependencyItem) error {
 	//file or directory
 	protoStorePath, err := GetProtoStorePath()
-	if strings.HasSuffix(dep.Path, ".proto") {
-		file := filepath.Base(dep.Path)
+	if strings.HasSuffix(dep.RelativePath, ".proto") {
+		file := filepath.Base(dep.RelativePath)
 
 		if err != nil {
 			return err
@@ -210,16 +187,14 @@ func CopyFileOrFolder(dep models.Dependency) error {
 			return err
 		}
 
-		depType := GetDepTypeString(dep.Type)
-
-		fullDstPath := filepath.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
+		fullDstPath := filepath.Join(protoStorePath, projectId, dep.Type, dep.Tag, dep.RelativePath)
 
 		err = os.MkdirAll(fullDstPath, os.ModePerm)
 		if err != nil {
 			return err
 		}
 
-		err = CopyFile(dep.Path, path.Join(fullDstPath, file))
+		err = CopyFile(dep.RelativePath, path.Join(fullDstPath, file))
 		if err != nil {
 			return err
 		}
@@ -233,7 +208,7 @@ func CopyFileOrFolder(dep models.Dependency) error {
 	return nil
 }
 
-func CopyFilesRecursively(dep models.Dependency) error {
+func CopyFilesRecursively(dep models.DependencyItem) error {
 	protoStorePath, err := GetProtoStorePath()
 	if err != nil {
 		return err
@@ -241,13 +216,12 @@ func CopyFilesRecursively(dep models.Dependency) error {
 	return visitor("", dep, protoStorePath)
 }
 
-func visitor(currRelativePath string, dep models.Dependency, protoStorePath string) error {
+func visitor(currRelativePath string, dep models.DependencyItem, protoStorePath string) error {
 	//copy files
-	entries, err := os.ReadDir(path.Join(dep.Path, currRelativePath))
+	entries, err := os.ReadDir(path.Join(dep.Source, currRelativePath))
 	if err != nil {
 		return err
 	}
-	depType := GetDepTypeString(dep.Type)
 	projectId, err := GetProjectId()
 	if err != nil {
 		return err
@@ -255,8 +229,8 @@ func visitor(currRelativePath string, dep models.Dependency, protoStorePath stri
 
 	for _, e := range entries {
 		if strings.HasSuffix(e.Name(), ".proto") && !e.Type().IsDir() {
-			src := path.Join(dep.Path, currRelativePath, e.Name())
-			dst := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath, currRelativePath, e.Name())
+			src := path.Join(dep.Source, currRelativePath, e.Name())
+			dst := path.Join(protoStorePath, projectId, dep.Type, dep.Tag, dep.RelativePath, currRelativePath, e.Name())
 			err = CopyFile(src, dst)
 			if err != nil {
 				return err

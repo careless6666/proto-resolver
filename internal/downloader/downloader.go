@@ -11,12 +11,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 )
 
 type IDownloader interface {
-	Download(deps []models.Dependency) error
+	Download(deps []models.DependencyItem) error
 }
 
 type Downloader struct {
@@ -29,7 +28,7 @@ func NewDownloader(enablePull bool) *Downloader {
 	}
 }
 
-func (d *Downloader) Download(deps []models.Dependency) error {
+func (d *Downloader) Download(deps []models.DependencyItem) error {
 
 	protoStorePath, err := utils.GetProtoStorePath()
 	if err != nil {
@@ -69,7 +68,7 @@ func (d *Downloader) Download(deps []models.Dependency) error {
 			}
 
 		default:
-			return errors.New("unknown dependency type, " + strconv.Itoa(dep.Type))
+			return errors.New("unknown dependency type, " + dep.Type)
 		}
 	}
 
@@ -86,7 +85,7 @@ func GetRepoName(URL string) (string, error) {
 	return "", errors.New("Invalid repo name: " + URL + " expected end with *.git")
 }
 
-func (d *Downloader) DownloadGitRepo(dep models.Dependency) error {
+func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 
 	gitInstalled := exec.Command("git", "--version")
 
@@ -102,7 +101,7 @@ func (d *Downloader) DownloadGitRepo(dep models.Dependency) error {
 	// TODO: problem repository with same name
 	// TODO: enable pull mode
 
-	utils.LogVerbose("git clone " + dep.Path + " to " + protoStorePath)
+	utils.LogVerbose("git clone " + dep.Source + " to " + protoStorePath)
 
 	if _, err := os.Stat(protoStorePath); !os.IsNotExist(err) {
 		utils.LogVerbose("repo exist skip clone")
@@ -133,7 +132,7 @@ func (d *Downloader) DownloadGitRepo(dep models.Dependency) error {
 		}
 
 	} else {
-		cloneCmd := exec.Command("git", "clone", dep.Path, protoStorePath)
+		cloneCmd := exec.Command("git", "clone", dep.Source, protoStorePath)
 
 		setStdCommand(cloneCmd)
 		err = cloneCmd.Run()
@@ -145,10 +144,10 @@ func (d *Downloader) DownloadGitRepo(dep models.Dependency) error {
 
 	gitFolder := path.Join(protoStorePath, ".git")
 
-	if dep.Version.CommitRevision != "" {
+	if dep.CommitRevision != "" {
 
 		checkoutCmd := exec.Command("git", "--git-dir", gitFolder, "--work-tree", protoStorePath,
-			"checkout", dep.Version.CommitRevision)
+			"checkout", dep.CommitRevision)
 
 		setStdCommand(checkoutCmd)
 		err = checkoutCmd.Run()
@@ -159,7 +158,7 @@ func (d *Downloader) DownloadGitRepo(dep models.Dependency) error {
 
 	} else {
 		cmd := exec.Command("git", "--git-dir", gitFolder, "--work-tree", protoStorePath,
-			"checkout", "tags/"+dep.Version.Tag, "-f")
+			"checkout", "tags/"+dep.Tag, "-f")
 
 		setStdCommand(cmd)
 		err = cmd.Run()
@@ -222,15 +221,14 @@ func setStdCommand(cmd *exec.Cmd) {
 	cmd.Stdin = os.Stdin
 }
 
-func DownloadFile(dep models.Dependency) error {
+func DownloadFile(dep models.DependencyItem) error {
 	protoStorePath, err := utils.GetProtoStorePath()
-	urlArr := strings.Split(dep.Path, "/")
+	urlArr := strings.Split(dep.Source, "/")
 	dstFileName := urlArr[len(urlArr)-1]
 
 	projectId, err := utils.GetProjectId()
-	depType := utils.GetDepTypeString(dep.Type)
 
-	dstFilePath := path.Join(protoStorePath, projectId, depType, dep.Version.Tag, dep.DestinationPath)
+	dstFilePath := path.Join(protoStorePath, projectId, dep.Type, dep.Tag, dep.RelativePath)
 
 	destinationFile := path.Join(dstFilePath, dstFileName)
 
@@ -245,7 +243,7 @@ func DownloadFile(dep models.Dependency) error {
 		if err != nil {
 			return err
 		}
-		resp, err := http.Get(dep.Path)
+		resp, err := http.Get(dep.Source)
 		defer resp.Body.Close()
 		if err != nil {
 			return err
