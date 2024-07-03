@@ -1,4 +1,4 @@
-# ProtoResolver
+# proto-resolver
 
 ## How to use it
 
@@ -21,5 +21,17 @@ http mode
 ```
 
 Secondly install tool:
+
+```shell
+go install github.com/careless6666/proto-resolver/cmd/proto-resolver@latest
+```
+
+If that fails, make sure your GOPATH/bin is in your PATH. You can add it with:
+
+```shell
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+
 
 

@@ -1,9 +1,9 @@
 package downloader
 
 import (
-	"ProtoDepsResolver/internal/models"
-	"ProtoDepsResolver/internal/utils"
 	"errors"
+	"github.com/careless6666/proto-resolver/internal/models"
+	"github.com/careless6666/proto-resolver/internal/utils"
 	"github.com/thoas/go-funk"
 	"io"
 	"log"

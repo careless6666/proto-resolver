@@ -1,8 +1,8 @@
 package resolver
 
 import (
-	"ProtoDepsResolver/internal/models"
-	"ProtoDepsResolver/internal/utils"
+	"github.com/careless6666/proto-resolver/internal/models"
+	"github.com/careless6666/proto-resolver/internal/utils"
 	"github.com/mattn/go-zglob"
 	"github.com/thoas/go-funk"
 	"os"

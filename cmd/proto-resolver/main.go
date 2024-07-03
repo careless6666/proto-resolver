@@ -1,7 +1,6 @@
 package main
 
 import (
-	"ProtoDepsResolver/cmd/app"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -9,7 +8,7 @@ import (
 
 func main() {
 	util := cli.App{
-		Name:  "protoresolver",
+		Name:  "proto-resolver",
 		Usage: "vendoring proto files with dependencies",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -40,7 +39,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:   "restore",
-				Action: app.Restore,
+				Action: Restore,
 				Usage:  "download all proto files",
 			},
 		},

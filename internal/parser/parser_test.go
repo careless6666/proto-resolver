@@ -1,8 +1,8 @@
 package parser
 
 import (
+	"github.com/careless6666/proto-resolver/internal/parser/mock"
 	//	"ProtoDepsResolver/internal/models"
-	"ProtoDepsResolver/internal/parser/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"testing"

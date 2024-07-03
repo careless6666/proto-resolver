@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"ProtoDepsResolver/internal/models"
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
+	"github.com/careless6666/proto-resolver/internal/models"
 	"io"
 	"os"
 	"path"

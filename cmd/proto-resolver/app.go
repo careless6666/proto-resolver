@@ -1,11 +1,11 @@
-package app
+package main
 
 import (
-	"ProtoDepsResolver/internal/downloader"
-	"ProtoDepsResolver/internal/parser"
-	"ProtoDepsResolver/internal/resolver"
-	"ProtoDepsResolver/internal/utils"
 	"fmt"
+	"github.com/careless6666/proto-resolver/internal/downloader"
+	"github.com/careless6666/proto-resolver/internal/parser"
+	"github.com/careless6666/proto-resolver/internal/resolver"
+	"github.com/careless6666/proto-resolver/internal/utils"
 	"github.com/urfave/cli/v2"
 	"os"
 	"path"

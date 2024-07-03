@@ -3,9 +3,9 @@
 package parser
 
 import (
-	"ProtoDepsResolver/internal/models"
 	"encoding/json"
 	"errors"
+	"github.com/careless6666/proto-resolver/internal/models"
 	"os"
 	"regexp"
 )

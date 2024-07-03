@@ -1,9 +1,9 @@
 package functional_tests
 
 import (
-	"ProtoDepsResolver/cmd/app"
 	"errors"
 	"fmt"
+	"github.com/careless6666/proto-resolver/cmd/proto-resolver"
 	"github.com/stretchr/testify/require"
 	"github.com/thoas/go-funk"
 	"log"
@@ -32,7 +32,7 @@ deps:
 	}
 
 	// Act
-	err = app.Restore(nil)
+	err = main.Restore(nil)
 	if err != nil {
 		require.NoError(t, err)
 	}
@@ -78,7 +78,7 @@ deps:
 	require.NoError(t, err)
 
 	// Act
-	err = app.Restore(nil)
+	err = main.Restore(nil)
 	require.NoError(t, err)
 
 	// Assert
@@ -112,7 +112,7 @@ deps:
 	require.NoError(t, err)
 
 	// Act
-	err = app.Restore(nil)
+	err = main.Restore(nil)
 	require.NoError(t, err)
 
 	// Assert
