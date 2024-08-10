@@ -2,10 +2,10 @@
   "version": "v1",
   "deps": [
     {
-      "type": "url",
-      "source": "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto",
-      "relativePath": "github.com/googleapis/googleapis/google/api",
-      "version": "v1"
+      "type": "git",
+      "source": "https://github.com/googleapis/googleapis.git",
+      "relativePath": "google/api/annotations.proto",
+      "branch": "master"
     }
   ]
 }

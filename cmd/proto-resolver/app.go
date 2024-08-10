@@ -29,11 +29,11 @@ type App struct{}
 
 func Restore(ctx *cli.Context) error {
 
+	//opt := utils.ReadOptions(ctx)
+
 	if strings.EqualFold(ctx.String("verbose"), "true") {
 		utils.Verbosity = true
 	}
-
-	fmt.Println("restored")
 
 	var fileReader parser.IFileReader = parser.NewFileReader()
 	depsParser := parser.NewFileParser(fileReader)
@@ -62,6 +62,8 @@ func Restore(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("Successfully resolved dependencies")
 
 	return nil
 }
