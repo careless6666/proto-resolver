@@ -100,6 +100,7 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 	// TODO: git clone with github token
 	// TODO: problem repository with same name
 	// TODO: enable pull mode
+	// TODO: allow rename folder vendor.pb
 
 	utils.LogVerbose("git clone " + dep.Source + " to " + protoStorePath)
 
@@ -156,6 +157,16 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 			return err
 		}
 
+	} else if dep.Branch != "" {
+		checkoutCmd := exec.Command("git", "--git-dir", gitFolder, "--work-tree",
+			protoStorePath, "checkout", dep.Branch)
+
+		setStdCommand(checkoutCmd)
+		err = checkoutCmd.Run()
+
+		if err != nil {
+			return err
+		}
 	} else {
 		cmd := exec.Command("git", "--git-dir", gitFolder, "--work-tree", protoStorePath,
 			"checkout", "tags/"+dep.Tag, "-f")

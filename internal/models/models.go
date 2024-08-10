@@ -24,3 +24,9 @@ type DependencyRoot struct {
 	Version string           `json:"version"`
 	Deps    []DependencyItem `json:"deps"`
 }
+
+type CmdOptions struct {
+	Verbose     bool
+	GitPull     bool
+	GithubToken string
+}

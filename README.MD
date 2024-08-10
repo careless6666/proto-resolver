@@ -32,6 +32,12 @@ If that fails, make sure your GOPATH/bin is in your PATH. You can add it with:
 export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
+In path with proto_deps.json execute 
+```shell
+proto-resolver restore
+```
+when you will see additional actions in console or result in vendor.pb directory
+
 
 
 

@@ -23,15 +23,15 @@ func main() {
 				Usage:    "github access token",
 				Required: false,
 			},
-			&cli.StringFlag{
+			&cli.BoolFlag{
 				Name:     "git_pull",
-				Value:    "true",
+				Value:    true,
 				Usage:    "git enable pull",
 				Required: false,
 			},
-			&cli.StringFlag{
+			&cli.BoolFlag{
 				Name:     "verbose",
-				Value:    "false",
+				Value:    false,
 				Usage:    "verbose",
 				Required: false,
 			},
