@@ -1,3 +1,0 @@
-version: v1
-deps:
-  - url: https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto github.com/googleapis/googleapis/google/api v1

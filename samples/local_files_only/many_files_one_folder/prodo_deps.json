@@ -1,0 +1,11 @@
+{
+  "version": "v1",
+  "deps": [
+    {
+      "type": "path",
+      "source": "/Users/alex/Documents/google_api_proto/github.com/googleapis/googleapis/google/api",
+      "relativePath": "github.com/googleapis",
+      "version": "v1"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "version": "v1",
+  "deps": [
+    {
+      "type": "path",
+      "source": "/Users/Documents/project/github.com/googleapis/googleapis/google/api/annotations.proto",
+      "relativePath": "github.com/googleapis",
+      "version": "v1"
+    }
+  ]
+}
