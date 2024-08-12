@@ -29,7 +29,7 @@ type App struct{}
 
 func Restore(ctx *cli.Context) error {
 
-	//opt := utils.ReadOptions(ctx)
+	opt := utils.ReadOptions(ctx)
 
 	if strings.EqualFold(ctx.String("verbose"), "true") {
 		utils.Verbosity = true
@@ -50,7 +50,7 @@ func Restore(ctx *cli.Context) error {
 		return err
 	}
 
-	depsDownloader := downloader.NewDownloader(true)
+	depsDownloader := downloader.NewDownloader(opt)
 	err = depsDownloader.Download(deps)
 
 	if err != nil {

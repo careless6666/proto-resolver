@@ -12,7 +12,7 @@ func ReadOptions(ctx *cli.Context) models.CmdOptions {
 	ctx.String("verbose")
 	opt.Verbose = ctx.Bool("verbose")
 	opt.GitPull = ctx.Bool("git-pull")
-	opt.GithubToken = ctx.String("github-token")
+	opt.ApiToken = ctx.String("api-token")
 
 	return opt
 }

@@ -7,40 +7,42 @@ import (
 )
 
 func main() {
+
+	apiToken := ""
 	util := cli.App{
 		Name:  "proto-resolver",
 		Usage: "vendoring proto files with dependencies",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "gitlab_token",
-				Value:    "",
-				Usage:    "gitlab access token",
-				Required: false,
-			},
-			&cli.StringFlag{
-				Name:     "github_token",
-				Value:    "",
-				Usage:    "github access token",
-				Required: false,
-			},
-			&cli.BoolFlag{
-				Name:     "git_pull",
-				Value:    true,
-				Usage:    "git enable pull",
-				Required: false,
-			},
-			&cli.BoolFlag{
-				Name:     "verbose",
-				Value:    false,
-				Usage:    "verbose",
-				Required: false,
-			},
-		},
 		Commands: []*cli.Command{
 			{
 				Name:   "restore",
 				Action: Restore,
 				Usage:  "download all proto files",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "api-token",
+						Aliases:     []string{"a"},
+						Usage:       "gitlab access token",
+						Required:    false,
+						Destination: &apiToken,
+					},
+					&cli.StringFlag{
+						Name:     "github_token",
+						Usage:    "github access token",
+						Required: false,
+					},
+					&cli.BoolFlag{
+						Name:     "git_pull",
+						Value:    true,
+						Usage:    "git enable pull",
+						Required: false,
+					},
+					&cli.BoolFlag{
+						Name:     "verbose",
+						Value:    false,
+						Usage:    "verbose",
+						Required: false,
+					},
+				},
 			},
 		},
 	}

@@ -19,12 +19,12 @@ type IDownloader interface {
 }
 
 type Downloader struct {
-	enablePull bool
+	appOptions models.CmdOptions
 }
 
-func NewDownloader(enablePull bool) *Downloader {
+func NewDownloader(opt models.CmdOptions) *Downloader {
 	return &Downloader{
-		enablePull: enablePull,
+		appOptions: opt,
 	}
 }
 
@@ -104,6 +104,12 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 
 	utils.LogVerbose("git clone " + dep.Source + " to " + protoStorePath)
 
+	source := dep.Source
+
+	if d.appOptions.ApiToken != "" {
+		source = d.AddApiToken(source)
+	}
+
 	if _, err := os.Stat(protoStorePath); !os.IsNotExist(err) {
 		utils.LogVerbose("repo exist skip clone")
 
@@ -121,7 +127,7 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 			return err
 		}
 
-		if d.enablePull {
+		if d.appOptions.GitPull {
 			pullCmd := exec.Command("git", "pull")
 			pullCmd.Dir = path.Join(protoStorePath)
 			setStdCommand(pullCmd)
@@ -133,7 +139,7 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 		}
 
 	} else {
-		cloneCmd := exec.Command("git", "clone", dep.Source, protoStorePath)
+		cloneCmd := exec.Command("git", "clone", source, protoStorePath)
 
 		setStdCommand(cloneCmd)
 		err = cloneCmd.Run()
@@ -181,6 +187,21 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 	}
 
 	return nil
+}
+
+func (d *Downloader) AddApiToken(source string) string {
+	newSource := ""
+
+	if strings.HasPrefix(source, "https") {
+		newSource = "https://"
+	} else {
+		newSource = "http://"
+	}
+
+	newSource += "oauth2:" + d.appOptions.ApiToken + "@"
+	protocolIndex := strings.Index(source, "://")
+	newSource += source[(protocolIndex + 3):]
+	return newSource
 }
 
 func getBranchName(protoStorePath string) (*string, error) {
