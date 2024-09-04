@@ -19,7 +19,7 @@ func main() {
 				Usage:  "download all proto files",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "api-token",
+						Name:        "gitlab_token",
 						Aliases:     []string{"a"},
 						Usage:       "gitlab access token",
 						Required:    false,
@@ -28,6 +28,11 @@ func main() {
 					&cli.StringFlag{
 						Name:     "github_token",
 						Usage:    "github access token",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     "gitlab_domain",
+						Usage:    "gitlab special domain",
 						Required: false,
 					},
 					&cli.BoolFlag{

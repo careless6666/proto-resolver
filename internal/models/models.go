@@ -26,8 +26,9 @@ type DependencyRoot struct {
 }
 
 type CmdOptions struct {
-	Verbose bool
-	GitPull bool
-	// github token | gitlab token
-	ApiToken string
+	Verbose      bool
+	GitPull      bool
+	GithubToken  string
+	GitlabToken  string
+	GitlabDomain string
 }

@@ -3,9 +3,26 @@
   "deps": [
     {
       "type": "git",
+      "source": "https://gitlab.ae-rus.net/dev/schedulez.git",
+      "relativePath": "",
+      "tag": "20240813.1"
+    },
+    {
+      "type": "git",
       "source": "https://github.com/googleapis/googleapis.git",
       "relativePath": "google/api/annotations.proto",
-      "branch": "master"
+      "commitRevision": "409e134ffaac"
+    },
+    {
+      "type": "git",
+      "source": "https://github.com/googleapis/googleapis.git",
+      "relativePath": "google/api/http.proto",
+      "commitRevision": "409e134ffaac"
+    },
+    {
+      "type": "url",
+      "source": "https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/main/protoc-gen-openapiv2/options/annotations.proto",
+      "relativePath": "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/options"
     }
   ]
 }

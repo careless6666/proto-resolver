@@ -106,8 +106,12 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 
 	source := dep.Source
 
-	if d.appOptions.ApiToken != "" {
-		source = d.AddApiToken(source)
+	if d.appOptions.GithubToken != "" && strings.Contains(dep.Source, "github") {
+		source = d.AddApiToken(source, d.appOptions.GithubToken)
+	}
+
+	if d.appOptions.GitlabToken != "" && (strings.Contains(dep.Source, "gitlab") || (len(d.appOptions.GitlabDomain) > 0 && strings.Contains(dep.Source, d.appOptions.GitlabDomain))) {
+		source = d.AddApiToken(source, d.appOptions.GitlabToken)
 	}
 
 	if _, err := os.Stat(protoStorePath); !os.IsNotExist(err) {
@@ -189,7 +193,7 @@ func (d *Downloader) DownloadGitRepo(dep models.DependencyItem) error {
 	return nil
 }
 
-func (d *Downloader) AddApiToken(source string) string {
+func (d *Downloader) AddApiToken(source string, token string) string {
 	newSource := ""
 
 	if strings.HasPrefix(source, "https") {
@@ -198,7 +202,7 @@ func (d *Downloader) AddApiToken(source string) string {
 		newSource = "http://"
 	}
 
-	newSource += "oauth2:" + d.appOptions.ApiToken + "@"
+	newSource += "oauth2:" + token + "@"
 	protocolIndex := strings.Index(source, "://")
 	newSource += source[(protocolIndex + 3):]
 	return newSource
