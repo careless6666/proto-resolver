@@ -22,25 +22,25 @@
     {
       "type": "git",
       "source": "https://github.com/googleapis/googleapis.git",
-      "relativePath": "google/api/http.proto",
+      "searchPath": "google/api/http.proto",
       "commitRevision": "409e134ffaac"
     },
     {
       "type": "git",
       "source": "https://github.com/googleapis/googleapis.git",
-      "relativePath": "google/api/annotations.proto",
+      "searchPath": "google/api/annotations.proto",
       "commitRevision": "409e134ffaac"
     },
     {
       "type": "git",
       "source": "https://github.com/googleapis/googleapis.git",
-      "relativePath": "google/api/annotations.proto",
+      "searchPath": "google/api/annotations.proto",
       "branch": "master"
     },
     {
       "type": "git",
       "source": "https://github.com/googleapis/googleapis.git",
-      "relativePath": "google/api/annotations.proto",
+      "searchPath": "google/api/annotations.proto",
       "tag": "common-protos-1_3_1"
     }
   ]

@@ -213,11 +213,43 @@ func CopyFilesRecursively(dep models.DependencyItem) error {
 	if err != nil {
 		return err
 	}
+
+	path := "./path/to/fileOrDir"
+	file, err := os.Open(path)
+	if err != nil {
+		// handle the error and return
+	}
+
+	defer file.Close()
+
 	return visitor("", dep, protoStorePath)
+}
+
+func isFile(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+
+	if fileInfo.IsDir() {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 func visitor(currRelativePath string, dep models.DependencyItem, protoStorePath string) error {
 	//copy files
+
+	isFileResult, err := isFile(dep.Source)
+	if err != nil {
+		return err
+	}
+
+	if isFileResult {
+
+	}
+
 	entries, err := os.ReadDir(path.Join(dep.Source, currRelativePath))
 	if err != nil {
 		return err

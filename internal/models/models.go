@@ -12,6 +12,7 @@ type DependencyItem struct {
 	Type         string `json:"type"`
 	Source       string `json:"source"`
 	RelativePath string `json:"relativePath"`
+	SearchPath   string `json:"searchPath"`
 	//for url anf file types only
 	Version        string `json:"version"`
 	Tag            string `json:"tag"`

@@ -41,7 +41,7 @@ when you will see additional actions in console or result in vendor.pb directory
 
 ## Configuration description
 
-We have several way to configure how resolve files
+We have several ways to configure how to resolve files
 
 ### Path mode
 ```json
@@ -56,10 +56,19 @@ We have several way to configure how resolve files
  - Type - path - approach how receive proto files, you can write file or folder (copy full directory recursively)
  - Source - Path to directory/file where stored your proto files
  - Relative path - where we put content from source 
- - Version - tech paramatr used caching (optional)
+ - Version - tech parameter used caching (optional)
 
 
 ### Url mode
+
+```json
+{
+  "type": "url",
+  "source": "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto",
+  "relativePath": "github.com/googleapis/googleapis/google/api",
+  "version": "v1"
+}
+```
 
 You should write url where stored proto files (raw mode!)
 
@@ -70,11 +79,22 @@ You should write url where stored proto files (raw mode!)
 
 ### Git mode
 
+```json
+{
+  "type": "git",
+  "source": "https://github.com/googleapis/googleapis.git",
+  "searchPath": "google/api/http.proto",
+  "commitRevision": "409e134ffaac"
+}
+```
+
 You should write url with https format to git repository
 
-- Type - git - approach how receive proto files, under the hood tool clone or pull git repository
+Install git on your machine
+
+- Type - git - approach how receive proto files, under the hood tool clones or pull git repository
 - Source - git url to repository, write url in http(s) format
-- Relative path - you can configure here special file or folder in git repository for resolve, if you put empty string tool will clone full proto files from source repository and place it in vendor.pb with git internet address
+- Search path - you can configure here special file or folder in git repository for resolve, if you put empty string tool will clone full proto files from source repository and place it in vendor.pb with git internet address
 - Commit Revision - write 12 digits of commit, it will resolve proto files for this commit
 - Tag - tool resolve proto files for this git tag
 - Branch - tool resolve files from special branch
@@ -89,6 +109,15 @@ Pull modes:
  - pull disabled - clone or get from cache git repo info
 
 
+Default usage
+```bash
+proto-resolver restore
+```
+
+Use with github token
+```bash
+proto-resolver restore -github_token="dsdsadasdw"
+```
 
 
 

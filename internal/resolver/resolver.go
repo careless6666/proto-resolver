@@ -97,7 +97,7 @@ func makeNewPathOnCopy(matchedFile string, dep models.DependencyItem) (string, e
 		if err != nil {
 			return "", err
 		}
-		dstPath = path.Join(pathFromAddress, dep.RelativePath)
+		dstPath = path.Join(pathFromAddress, dep.SearchPath)
 	}
 
 	start := funk.IndexOf(matchedFile, dstPath)
