@@ -67,3 +67,15 @@ func Restore(ctx *cli.Context) error {
 
 	return nil
 }
+
+func CleanCache(ctx *cli.Context) error {
+
+	cacheDir, err := utils.GetProtoStorePath()
+	if err != nil {
+		return err
+	}
+
+	err = os.RemoveAll(cacheDir)
+
+	return err
+}

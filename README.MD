@@ -38,6 +38,10 @@ proto-resolver restore
 ```
 when you will see additional actions in console or result in vendor.pb directory
 
+If something go wrong try to clean cache with commend
+```shell
+proto-resolver clean-cache
+```
 
 ## Configuration description
 

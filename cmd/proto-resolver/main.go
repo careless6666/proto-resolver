@@ -49,6 +49,11 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:   "clean-cache",
+				Action: CleanCache,
+				Usage:  "clean files in cache folder",
+			},
 		},
 	}
 
